@@ -1,0 +1,1 @@
+java -Dsun.java2d.d3d=false a3.MyGame 192.168.1.19 6000

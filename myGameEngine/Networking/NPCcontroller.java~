@@ -1,0 +1,70 @@
+package myGameEngine.Networking;
+
+import myGameEngine.Networking;
+
+public class NPCcontroller{
+	
+	private NPC[] NPClist = new NPC[5];
+	private BehaviorTree bt = new BehaviorTree(BTCompositeType.SELECTOR);
+ 
+	public void updateNPCs(){
+		for (int i=0; i<numNPCs; i++){ 
+			NPClist[i].updateLocation();
+		}
+	}
+
+	public void start(){
+		thinkStartTime = System.nanoTime();
+		tickStateTime = System.nanoTime();
+		lastThinkUpdateTime = thinkStartTime;
+		lastTickUpdateTime = tickStartTime;
+		
+		setupNPC();
+		setupBehaviorTree();
+		npcLoop();
+	}
+
+	public void setupNPCs(){
+		//from code example 12a NPCsAI
+		//This is made reference to, but does not show code
+	}
+	
+	public void setupNPC(){
+		NPC npc = new NPC();
+		npc.randomizeLocation(rn.nextInt(50), rn.nextInt(50));
+	}
+	
+	public void npcLoop(){
+		while(true){
+			long currentTime = System.nanoTime();
+			float elpasedThinkMilliSecs = (currentTime - lastThinkTime)/(1000000.0f);
+			float elapsedTickMilliSecs = (currentTime - lastTickUpdateTime)/(1000000.0f);
+			
+			if(elapsedTickMilliSecs >= 500.0f){ //"TICK"
+				lastTickUpdateTime = currentTime;
+				npc.updateLocation();
+				server.sendNPCinfo();
+			}
+			
+			if(elapsedThinkMilliSecs >= 500.0f){ //"THINK"
+				lastThinkUpdateTime = currentTime;
+				bt.update(elapsedMilliSecs);
+			}
+			
+			Thread.yield();
+		}
+	}
+	
+	public void setupBehaviorTree(){
+		bt.insertAtRoot(new BTSequence(10));
+		bt.insertAtRoot(new BTSequence(20));
+		bt.insert(10, new OneSecPassed(this,npc,false));
+		bt.insert(10, new GetSmall(npc));
+		bt.insert(20, new AvatarNear(server,this,npc,false));
+		bt.insert(20, new GetBig(npc));
+	}
+
+	public boolean getNearFlag(){
+		return false;
+	}
+}

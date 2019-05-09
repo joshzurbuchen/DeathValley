@@ -1,0 +1,2 @@
+One object with a texture, a light, and a rotation controller.
+This is the base program distributed, and the basic assets folder.
