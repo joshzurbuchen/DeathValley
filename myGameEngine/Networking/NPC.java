@@ -79,7 +79,7 @@ public class NPC{
 		//System.out.println("NPC moved Z: " + locZ);
 		
 		
-		if(locY > 12.5)
+		if(locY > 10.5)
 			goingUp = false;
 		else if(locY < 10)
 			goingUp = true;
