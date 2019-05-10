@@ -107,6 +107,8 @@ public class MyGame extends VariableFrameRateGame {
 	private SceneNode cameraN;
 	private SceneNode tessN;
 	private SceneNode treeN;
+	
+	private int gitTest;
 
 	private Tessellation tessE;
 
