@@ -321,8 +321,9 @@ public class ProtocolClient extends GameConnectionClient{
 	
 	public void createGhostTree(int id, Vector3 position)throws IOException{
 		
+		game.addGhostTreetoGameWorld(id, position);
 		//System.out.println("ProtocolClient calling MyGame.addGhostNPCtoGameWorld");
-		GhostNPC newNPC = new GhostNPC(id, position);
+		/*GhostNPC newNPC = new GhostNPC(id, position);
 		
 		if(newNPC == null)
 			System.out.println("newTreeNPC is null");
@@ -330,10 +331,12 @@ public class ProtocolClient extends GameConnectionClient{
 			treeNPCs.add(newNPC);
 			
 			//try{
-				game.addGhostTreetoGameWorld(newNPC, id, position);
+			game.addGhostTreetoGameWorld(id, position);
 			//}catch(IOException e){
 				//e.printStackTrace();
 			//}
+		
 		}
+		*/
 	}
 }

@@ -74,7 +74,6 @@ import ray.rage.scene.controllers.*;
 import ray.rage.asset.texture.*;
 import ray.rage.util.*;
 
-
 import ray.networking.IGameConnection.ProtocolType;
 
 import ray.input.*;
@@ -90,6 +89,10 @@ import net.java.games.input.Component;
 import ray.rml.*;
 
 import static ray.rage.scene.SkeletalEntity.EndType.*;
+
+import ray.physics.PhysicsEngine;
+import ray.physics.PhysicsObject;
+import ray.physics.PhysicsEngineFactory;
 
 public class MyGame extends VariableFrameRateGame {
 
@@ -122,6 +125,8 @@ public class MyGame extends VariableFrameRateGame {
 	private ProtocolClient protClient;
 	private boolean isClientConnected;
 	private Vector<UUID> gameObjectsToRemove;
+
+	private PhysicsEngine physicsEng;
 
 	private static final String HEIGHTMAP_NAME = "heightMap2.PNG";
 	private static final String GROUND_TEXTURE = "greenHills.PNG";
@@ -372,17 +377,6 @@ public class MyGame extends VariableFrameRateGame {
 
 		//load animations
 		avatarE.loadAnimation("walkAnimation","MrPolygonWalk.rka");
-		
-		SceneNode lightNode = avatarN.createChildSceneNode("lightNode2");
-				
-				Light slight = sm.createLight("testLamp1", Light.Type.SPOT);
-				slight.setAmbient(java.awt.Color.red);
-				slight.setDiffuse(java.awt.Color.red);
-				slight.setSpecular(java.awt.Color.red);
-				slight.setRange(15f);
-				Angle rotAmt = Degreef.createFrom(-90.0f);
-				lightNode.pitch(rotAmt);
-				lightNode.attachObject(slight);
 	}
 
 	public void doTheWalk(){
@@ -399,46 +393,30 @@ public class MyGame extends VariableFrameRateGame {
 		TextureManager tm = eng.getTextureManager();
 		RenderSystem rs = sm.getRenderSystem();
 
-	//*******Set up sky box
+		//******Set up sky box
 		setupSkybox(eng);
 
-	//********Set up avatar
+		//******Set up avatar
 		setupAvatar(eng, sm);
 
-	/*
-	Added method for player avatar
-	//*******add dolphin to scene, currently this is our "avatar"
-        Entity dolphinE = sm.createEntity("myDolphin", "dolphinHighPoly.obj");
-	    dolphinE.setPrimitive(Primitive.TRIANGLES);
+		//******spell testing
+		Spell spell = new Spell(sm);
+		spell.buildObj();
 
-        avatarN = sm.getRootSceneNode().createChildSceneNode(dolphinE.getName() + "Node");
-        avatarN.moveBackward(2.0f);
-        avatarN.attachObject(dolphinE);
+		//******add tree
 
-		dolphinChildN = avatarN.createChildSceneNode("DolphinChild");
-		dolphinChildN.moveBackward(0.25f);
-		dolphinChildN.moveUp(0.5f);
-		dolphinChildN.attachObject(camera);
+		Entity treeE = sm.createEntity("myTree", "lowPolyPineTreeblend.obj");
+		//Entity treeE = sm.createEntity("myTree", "cube.obj");
+		treeE.setPrimitive(Primitive.TRIANGLES);
 
-	*/
-	//******spell testing
-	Spell spell = new Spell(sm);
-	spell.buildObj();
+		treeN = sm.getRootSceneNode().createChildSceneNode("treeNode");
+		treeN.scale(.5f, .5f, .5f);
+		treeN.attachObject(treeE);
 
-	//******add tree
-
-	Entity treeE = sm.createEntity("myTree", "lowPolyPineTreeblend.obj");
-	//Entity treeE = sm.createEntity("myTree", "cube.obj");
-	treeE.setPrimitive(Primitive.TRIANGLES);
-
-	treeN = sm.getRootSceneNode().createChildSceneNode("treeNode");
-	treeN.scale(.5f, .5f, .5f);
-	treeN.attachObject(treeE);
-
-	Texture treeTex = tm.getAssetByPath("low_poly_pine_tree_skin.png");
-	TextureState treeTexState = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
-	treeTexState.setTexture(treeTex);
-	treeE.setRenderState(treeTexState);
+		Texture treeTex = tm.getAssetByPath("low_poly_pine_tree_skin.png");
+		TextureState treeTexState = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
+		treeTexState.setTexture(treeTex);
+		treeE.setRenderState(treeTexState);
 
 
 	//******Lighting
@@ -489,7 +467,7 @@ public class MyGame extends VariableFrameRateGame {
 								//((Double)(jsEngine.get("spinSpeed"))).floatValue());
         //rc.addNode(avatarN);
         //sm.addController(rc);
-
+		initPhysicsSystem();
 		setupNetworking();
 		//setupInputs();
 		setUpTerrain();
@@ -621,6 +599,8 @@ public class MyGame extends VariableFrameRateGame {
     protected void update(Engine engine) {
 		// build and set HUD
 		rs = (GL4RenderSystem) engine.getRenderSystem();
+		float time = engine.getElapsedTimeMillis();
+
 		elapsTime += engine.getElapsedTimeMillis();
 		elapsTimeSec = Math.round(elapsTime/1000.0f);
 		elapsTimeStr = Integer.toString(elapsTimeSec);
@@ -655,6 +635,17 @@ public class MyGame extends VariableFrameRateGame {
 			}
 
 		}
+
+		/***Physics***/
+		Matrix4 mat;
+		physicsEng.update(time);
+		for(SceneNode s: engine.getSceneManager().getSceneNodes()) {
+			if(s.getPhysicsObject() != null) {
+				mat = Matrix4f.createFrom(toFloatArray(s.getPhysicsObject().getTransform()));
+				s.setLocalPosition(mat.value(0,3), mat.value(1,3), mat.value(2,3));
+			}
+		}
+
 
 		//System.out.println(isClientConnected);
 		processNetworking(elapsTime);
@@ -717,13 +708,16 @@ public class MyGame extends VariableFrameRateGame {
 				
 				SceneNode lightNode = ghostNPCN.createChildSceneNode("lightNode");
 				
-				Light slight = sm.createLight("testLamp1", Light.Type.SPOT);
-				slight.setAmbient(java.awt.Color.red);
+				Light slight = sm.createLight("NPCSpotLight", Light.Type.SPOT);
+				slight.setAmbient(new Color(15, 0, 0));
 				slight.setDiffuse(java.awt.Color.red);
 				slight.setSpecular(java.awt.Color.red);
-				slight.setRange(15f);
-				Angle rotAmt = Degreef.createFrom(-90.0f);
+				slight.setRange(20f);
+				Angle rotAmt = Degreef.createFrom(90.0f);
+				Angle coneCut = Degreef.createFrom(11.25f);
 				lightNode.pitch(rotAmt);
+				slight.setConeCutoffAngle(coneCut);
+				slight.setConstantAttenuation(0.001f);
 				lightNode.attachObject(slight);
 				
 				
@@ -731,21 +725,45 @@ public class MyGame extends VariableFrameRateGame {
 		}
 	}
 	
-	public void addGhostTreetoGameWorld(GhostNPC npc, int id, Vector3 position){
-		if(npc != null){
-			try{
-				//System.out.println("Creating ghost npc");
-				Entity ghostNPCE = sm.createEntity("treeNPC" + id, "lowPolyPineTreeblend.obj");
-				ghostNPCE.setPrimitive(Primitive.TRIANGLES);
-				SceneNode ghostNPCN = sm.getRootSceneNode().createChildSceneNode("treeNPCnode" + id);
-				ghostNPCN.attachObject(ghostNPCE);
-				ghostNPCN.setLocalPosition(position); //these hardcoded numbers need some enumeration later
-				updateVerticalPosition(ghostNPCN);
-				npc.setNode(ghostNPCN);
-				npc.setEntity(ghostNPCE);
-				//avatar.setPosition(); sample says this could be redundent. Leaving it commented out for now
-			}catch(IOException e){}
-		}
+	public void addGhostTreetoGameWorld(int id, Vector3 position){
+		float mass = 100.0f;
+		float[] halfExtents = {1.5f, 0.25f, 0.25f};
+		float up[] = {0,1,0};
+		try{
+			//System.out.println("Creating ghost npc");
+			Entity treeE = sm.createEntity("tree" + id, "lowPolyPineTreeblend.obj");
+			treeE.setPrimitive(Primitive.TRIANGLES);
+			SceneNode treeN = sm.getRootSceneNode().createChildSceneNode("treeNode" + id);
+			treeN.attachObject(treeE);
+			treeN.setLocalPosition(position); //these hardcoded numbers need some enumeration later
+			updateVerticalPosition(treeN);
+			treeN.setLocalPosition(treeN.getLocalPosition().add(0.0f,5.0f,0.0f));
+
+			double[] temptf = toDoubleArray(treeN.getLocalTransform().toFloatArray());
+			PhysicsObject treePO = physicsEng.addCylinderObject(physicsEng.nextUID(), mass, temptf, halfExtents);
+			treePO.setBounciness(0.0f);
+			treeN.setPhysicsObject(treePO);
+
+			Entity gndE = sm.createEntity("gnd" + id, "mars.obj");
+			SceneNode gndN = sm.getRootSceneNode().createChildSceneNode("treeGndN" + id);
+			gndN.attachObject(gndE);
+			gndN.setLocalPosition(position);
+			//updateVerticalPosition(gndN);
+			gndN.setLocalPosition(gndN.getLocalPosition().add(0,1,0));
+
+			temptf = toDoubleArray(gndN.getLocalTransform().toFloatArray());
+			PhysicsObject gndPO = physicsEng.addStaticPlaneObject(physicsEng.nextUID(), temptf, up, 0.0f);
+
+
+			gndPO.setBounciness(0.0f);
+			gndN.scale(.2f, .05f, .2f);
+			
+			gndN.setPhysicsObject(gndPO);
+
+			System.out.println("Tree" + id + " physics set!");
+
+			//avatar.setPosition(); sample says this could be redundent. Leaving it commented out for now
+		}catch(IOException e){}
 	}
 
 	public void removeGhostAvatarFromGameWorld(GhostAvatar avatar){
@@ -777,16 +795,45 @@ public class MyGame extends VariableFrameRateGame {
 
 	private class SendCloseConnectionPacketAction extends AbstractInputAction{
 
-
 		public void performAction(float time, Event e){
-
 			if(protClient != null && isClientConnected == true){
 				System.out.println("Bye");
 				protClient.sendByeMessage();
 			}
-
 			exit();
 		}
+	}
+
+/*****************HERE BE PHYSICS*****************/
+	private void initPhysicsSystem() {
+		String engine = "ray.physics.JBullet.JBulletPhysicsEngine";
+		float[] gravity = {0,-3f,0};
+
+		physicsEng = PhysicsEngineFactory.createPhysicsEngine(engine);
+		physicsEng.initSystem();
+		physicsEng.setGravity(gravity);
+	}
+
+	private float[] toFloatArray(double[] arr) {
+		if (arr == null) return null;
+		int n = arr.length;
+		float[] ret = new float[n];
+		for (int i = 0; i < n; i++) {
+			ret[i] = (float)arr[i];
+		}
+		
+		return ret;
+	}
+
+	private double[] toDoubleArray(float[] arr) { 
+		if (arr == null) return null;
+		int n = arr.length;
+		double[] ret = new double[n];
+		for (int i = 0; i < n; i++) {
+			ret[i] = (double)arr[i];
+		}
+	
+		return ret;
 	}
 
 }

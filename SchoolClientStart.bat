@@ -1,1 +1,1 @@
-java -Dsun.java2d.d3d=false a3.MyGame 130.86.65.73 6000
+java -Dsun.java2d.d3d=false a3.MyGame 130.86.65.72 6000
