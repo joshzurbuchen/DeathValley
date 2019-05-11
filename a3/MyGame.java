@@ -140,6 +140,7 @@ public class MyGame extends VariableFrameRateGame {
 	private File worldObjectFile;
 	private long fileLastModifiedTime;
 	private long worldObjectsFileLastModifiedTime;
+	private	float up[] = {0,1,0};
 	
 	private DisplaySettingsDialog dSettings;
 
@@ -727,43 +728,44 @@ public class MyGame extends VariableFrameRateGame {
 	
 	public void addGhostTreetoGameWorld(int id, Vector3 position){
 		float mass = 100.0f;
-		float[] halfExtents = {1.5f, 0.25f, 0.25f};
-		float up[] = {0,1,0};
+		float[] halfExtents = {0.5f, 0.25f, 0.25f};
+
 		try{
-			//System.out.println("Creating ghost npc");
+			System.out.println("Creating tree npc");
 			Entity treeE = sm.createEntity("tree" + id, "lowPolyPineTreeblend.obj");
 			treeE.setPrimitive(Primitive.TRIANGLES);
 			SceneNode treeN = sm.getRootSceneNode().createChildSceneNode("treeNode" + id);
 			treeN.attachObject(treeE);
 			treeN.setLocalPosition(position); //these hardcoded numbers need some enumeration later
 			updateVerticalPosition(treeN);
-			treeN.setLocalPosition(treeN.getLocalPosition().add(0.0f,5.0f,0.0f));
+			//treeN.setLocalPosition(treeN.getLocalPosition().add(0.0f,5.0f,0.0f));
 
 			double[] temptf = toDoubleArray(treeN.getLocalTransform().toFloatArray());
 			PhysicsObject treePO = physicsEng.addCylinderObject(physicsEng.nextUID(), mass, temptf, halfExtents);
 			treePO.setBounciness(0.0f);
 			treeN.setPhysicsObject(treePO);
 
-			Entity gndE = sm.createEntity("gnd" + id, "mars.obj");
-			SceneNode gndN = sm.getRootSceneNode().createChildSceneNode("treeGndN" + id);
-			gndN.attachObject(gndE);
-			gndN.setLocalPosition(position);
-			//updateVerticalPosition(gndN);
-			gndN.setLocalPosition(gndN.getLocalPosition().add(0,1,0));
-
-			temptf = toDoubleArray(gndN.getLocalTransform().toFloatArray());
-			PhysicsObject gndPO = physicsEng.addStaticPlaneObject(physicsEng.nextUID(), temptf, up, 0.0f);
-
-
-			gndPO.setBounciness(0.0f);
-			gndN.scale(.2f, .05f, .2f);
-			
-			gndN.setPhysicsObject(gndPO);
-
-			System.out.println("Tree" + id + " physics set!");
-
+			createGroundPO(id, position);
 			//avatar.setPosition(); sample says this could be redundent. Leaving it commented out for now
 		}catch(IOException e){}
+	}
+
+	public void createGroundPO(int id, Vector3 position) {
+
+		//Entity gndE = sm.createEntity("gnd" + id, "cube.obj");
+		SceneNode gndN = sm.getRootSceneNode().createChildSceneNode("gndN" + id);
+		//gndN.attachObject(gndE);
+		gndN.setLocalPosition(position);
+		//updateVerticalPosition(gndN); //Set this if you want to tress to fly away
+
+		double[] temptf = toDoubleArray(gndN.getLocalTransform().toFloatArray());
+		PhysicsObject gndPO = physicsEng.addStaticPlaneObject(physicsEng.nextUID(), temptf, up, 0.0f);
+
+		gndPO.setBounciness(0.0f);
+		gndN.scale(3.0f, .05f, 3.0f);
+		
+		gndN.setPhysicsObject(gndPO);
+
 	}
 
 	public void removeGhostAvatarFromGameWorld(GhostAvatar avatar){
@@ -807,7 +809,7 @@ public class MyGame extends VariableFrameRateGame {
 /*****************HERE BE PHYSICS*****************/
 	private void initPhysicsSystem() {
 		String engine = "ray.physics.JBullet.JBulletPhysicsEngine";
-		float[] gravity = {0,-3f,0};
+		float[] gravity = {0,-100.0f,0};
 
 		physicsEng = PhysicsEngineFactory.createPhysicsEngine(engine);
 		physicsEng.initSystem();
