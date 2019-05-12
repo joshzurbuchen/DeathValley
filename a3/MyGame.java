@@ -366,13 +366,13 @@ public class MyGame extends VariableFrameRateGame {
 
 		//attach the entity to a scene node
 		avatarN = sm.getRootSceneNode().createChildSceneNode("avatarN");
-		avatarN.scale(0.005f, 0.005f, 0.005f);
+		avatarN.scale(0.5f, 0.5f, 0.5f);
 		avatarN.moveBackward(2.0f);
 		avatarN.attachObject(avatarE);
 
 		//attach camera to avatar
 		avatarChildN = avatarN.createChildSceneNode(avatarE.getName() + "Node");
-		//avatarChildN.moveBackward(5.0f);
+		avatarChildN.moveBackward(5.0f);
 		avatarChildN.moveUp(6.0f);
 		avatarChildN.attachObject(camera);
 
@@ -405,7 +405,7 @@ public class MyGame extends VariableFrameRateGame {
 		spell.buildObj();
 
 		//******add tree
-
+/*
 		Entity treeE = sm.createEntity("myTree", "lowPolyPineTreeblend.obj");
 		//Entity treeE = sm.createEntity("myTree", "cube.obj");
 		treeE.setPrimitive(Primitive.TRIANGLES);
@@ -418,7 +418,7 @@ public class MyGame extends VariableFrameRateGame {
 		TextureState treeTexState = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
 		treeTexState.setTexture(treeTex);
 		treeE.setRenderState(treeTexState);
-
+*/
 
 	//******Lighting
         sm.getAmbientLight().setIntensity(new Color(.5f, .5f, .5f));
@@ -475,6 +475,7 @@ public class MyGame extends VariableFrameRateGame {
 		
 		//ask for tree info if protocol isn't null
 		setupTrees();
+		createGroundPO(1, sm.getRootSceneNode().getWorldPosition());
 
     }
 	
@@ -739,13 +740,14 @@ public class MyGame extends VariableFrameRateGame {
 			treeN.setLocalPosition(position); //these hardcoded numbers need some enumeration later
 			updateVerticalPosition(treeN);
 			//treeN.setLocalPosition(treeN.getLocalPosition().add(0.0f,5.0f,0.0f));
-
-			double[] temptf = toDoubleArray(treeN.getLocalTransform().toFloatArray());
-			PhysicsObject treePO = physicsEng.addCylinderObject(physicsEng.nextUID(), mass, temptf, halfExtents);
-			treePO.setBounciness(0.0f);
-			treeN.setPhysicsObject(treePO);
-
-			createGroundPO(id, position);
+			
+			if(treeN.getLocalPosition().y() <= .5) {
+				double[] temptf = toDoubleArray(treeN.getLocalTransform().toFloatArray());
+				PhysicsObject treePO = physicsEng.addCylinderObject(physicsEng.nextUID(), mass, temptf, halfExtents);
+				treePO.setBounciness(0.0f);
+				treeN.setPhysicsObject(treePO);
+			}
+			//createGroundPO(id, position);
 			//avatar.setPosition(); sample says this could be redundent. Leaving it commented out for now
 		}catch(IOException e){}
 	}
@@ -762,7 +764,7 @@ public class MyGame extends VariableFrameRateGame {
 		PhysicsObject gndPO = physicsEng.addStaticPlaneObject(physicsEng.nextUID(), temptf, up, 0.0f);
 
 		gndPO.setBounciness(0.0f);
-		gndN.scale(3.0f, .05f, 3.0f);
+		gndN.scale(.5f, .05f, .5f);
 		
 		gndN.setPhysicsObject(gndPO);
 
@@ -809,7 +811,7 @@ public class MyGame extends VariableFrameRateGame {
 /*****************HERE BE PHYSICS*****************/
 	private void initPhysicsSystem() {
 		String engine = "ray.physics.JBullet.JBulletPhysicsEngine";
-		float[] gravity = {0,-100.0f,0};
+		float[] gravity = {0,-3.0f,0};
 
 		physicsEng = PhysicsEngineFactory.createPhysicsEngine(engine);
 		physicsEng.initSystem();

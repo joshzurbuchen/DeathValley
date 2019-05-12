@@ -88,7 +88,7 @@ public class NPCcontroller{
 		for(int i = 0; i < numTrees; i++){
 			treelist[i] = new NPC();
 			System.out.println("NPCcontroller setUpTrees" + i);
-			treelist[i].randomizeLocation(rn.nextInt(500) - 250, 0, rn.nextInt(500) - 250);
+			treelist[i].randomizeLocation(rn.nextInt(700) - 350, 0, rn.nextInt(700) - 350);
 			//treelist[i].randomizeLocation(0, 10, 0);
 			
 		}
