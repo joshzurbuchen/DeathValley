@@ -445,7 +445,7 @@ public class MyGame extends VariableFrameRateGame {
 
 
 		worldObjectFile = new File("worldObjects.js");
-		this.runScript(worldObjectFile);
+		//this.runScript(worldObjectFile);
 		worldObjectsFileLastModifiedTime = worldObjectFile.lastModified();
 
 		invocableEngine = (Invocable) jsEngine;
