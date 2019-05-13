@@ -151,11 +151,7 @@ public class MyGame extends VariableFrameRateGame {
 		serverAddress = serverAddr;
 		serverPort = sPort;
 		serverProtocol = ProtocolType.UDP; //TCP
-		/*System.out.println("press T to render triangles");
-		System.out.println("press L to render lines");
-		System.out.println("press P to render points");
-		System.out.println("press C to increment counter");
-		*/
+
 		ScriptEngineManager factory = new ScriptEngineManager();
 		jsEngine = factory.getEngineByName("js");
     }
@@ -281,39 +277,33 @@ public class MyGame extends VariableFrameRateGame {
 		Action yawLeft = new YawLeftAction(avatarN, protClient, jsEngine);
 		Action yawRight = new YawRightAction(avatarN, protClient, jsEngine);
 		Action quit = new SendCloseConnectionPacketAction();//protClient, isClientConnected);
-
+		
+		Action xAxis = new XAxisAction(avatarN, protClient, jsEngine, this);
+		Action yAxis = new YAxisAction(avatarN, protClient, jsEngine, this);
+		Action rXAxis = new RXAxisAction(avatarN, protClient, jsEngine);
+		Action rYAxis = new RYAxisAction(avatarChildN, protClient, jsEngine);
 
 		for(Controller c : controllers){
 			if(c.getType() == Controller.Type.KEYBOARD){
-		//keyboard associations
-		im.associateAction(c,
-			net.java.games.input.Component.Identifier.Key.P,
-			quit, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(c,
-			net.java.games.input.Component.Identifier.Key.W,
-			moveForward, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(c,
-			net.java.games.input.Component.Identifier.Key.S,
-			moveBackward, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(c,
-			net.java.games.input.Component.Identifier.Key.A,
-			moveLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(c,
-			net.java.games.input.Component.Identifier.Key.D,
-			moveRight, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(c,
-			net.java.games.input.Component.Identifier.Key.UP,
-			pitchUp, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(c,
-			net.java.games.input.Component.Identifier.Key.DOWN,
-			pitchDown, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(c,
-			net.java.games.input.Component.Identifier.Key.LEFT,
-			yawLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(c,
-			net.java.games.input.Component.Identifier.Key.RIGHT,
-			yawRight, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-
+				//keyboard associations
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.P, quit, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.W, moveForward, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.S, moveBackward, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.A, moveLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.D, moveRight, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.UP, pitchUp, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.DOWN,	pitchDown, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.LEFT,	yawLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.RIGHT, yawRight, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			} else if(c.getType() == Controller.Type.GAMEPAD) {
+				//Gamepad associations
+				im.associateAction(c, net.java.games.input.Component.Identifier.Axis.X, xAxis, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Axis.Y, yAxis, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        		im.associateAction(c, net.java.games.input.Component.Identifier.Axis.RX, rXAxis, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        		im.associateAction(c, net.java.games.input.Component.Identifier.Axis.RY, rYAxis, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Button._7, quit, InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+				//im.associateAction(c, net.java.games.input.Component.Identifier.Button._4, yawLeftAction2, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				//im.associateAction(c, net.java.games.input.Component.Identifier.Button._5, yawRightAction2, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 			}
 		}
 
@@ -739,6 +729,7 @@ public class MyGame extends VariableFrameRateGame {
 			treeN.attachObject(treeE);
 			treeN.setLocalPosition(position); //these hardcoded numbers need some enumeration later
 			updateVerticalPosition(treeN);
+			treeN.scale(2.0f, 2.0f, 2.0f);
 			//treeN.setLocalPosition(treeN.getLocalPosition().add(0.0f,5.0f,0.0f));
 			
 			if(treeN.getLocalPosition().y() <= .5) {

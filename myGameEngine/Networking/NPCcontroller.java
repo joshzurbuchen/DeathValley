@@ -16,7 +16,7 @@ import ray.rml.*;
 public class NPCcontroller{
 	
 	private int numNPCs = 1;
-	private int numTrees = 100;
+	private int numTrees = 150;
 	private NPC[] NPClist = new NPC[numNPCs];
 	private NPC[] treelist = new NPC[numTrees];
 	private BehaviorTree bt = new BehaviorTree(BTCompositeType.SELECTOR);
