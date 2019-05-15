@@ -868,7 +868,6 @@ public class MyGame extends VariableFrameRateGame {
 			System.out.println("MyGame.java: ShipSound not Valid!");
 		}
 
-
 		if(resource1.getIsLoaded()) {
 			System.out.println(resource1.getFileName() + " Loaded!");
 		} else {
