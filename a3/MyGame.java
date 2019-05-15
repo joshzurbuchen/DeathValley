@@ -659,10 +659,10 @@ public class MyGame extends VariableFrameRateGame {
 		avatarE.update();
 
 		/***Sound***/
-		SceneManager sm = engine.getSceneManager();
-		//hearSound.setLocation(sm.getSceneNode("avatar").getWorldPosition());
 		if(sm.hasSceneNode("ghostNPCN")) {
 			shipSound.setLocation(sm.getSceneNode("ghostNPCN").getWorldPosition());
+			//Vector3 temp = shipSound.getLocation();
+			//System.out.print("Sound Pos: " + temp.x() + ", " + temp.y() + ", " +  temp.z());
 		}
 		setEarParameters(sm);
 
@@ -864,15 +864,25 @@ public class MyGame extends VariableFrameRateGame {
 
 		shipSound.initialize(audioMgr);
 
+		if(!shipSound.getIsSoundValid()) {
+			System.out.println("MyGame.java: ShipSound not Valid!");
+		}
+
+
 		if(resource1.getIsLoaded()) {
 			System.out.println(resource1.getFileName() + " Loaded!");
 		} else {
 			System.out.println("File not Loaded");
 		}
 
-		//shipSound.setMaxDistance(10.0f);
-		//shipSound.setMinDistance(0.5f);
-		//shipSound.setRollOff(5.0f);
+		try {
+			shipSound.setMaxDistance(10.0f);
+			shipSound.setMinDistance(0.5f);
+			shipSound.setRollOff(5.0f);
+		} catch(NullPointerException e) {
+			System.out.println("MyGame.java: shipSound issues!");
+		}
+
 		if(sm.hasSceneNode("ghostNPCN")) {
 			SceneNode npcN = sm.getSceneNode("ghostNPCN");
 			shipSound.setLocation(npcN.getWorldPosition());
