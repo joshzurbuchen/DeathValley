@@ -94,6 +94,9 @@ import ray.physics.PhysicsEngine;
 import ray.physics.PhysicsObject;
 import ray.physics.PhysicsEngineFactory;
 
+import ray.audio.*;
+import com.jogamp.openal.ALFactory;
+
 public class MyGame extends VariableFrameRateGame {
 
 	// to minimize variable allocation in update()
@@ -125,6 +128,10 @@ public class MyGame extends VariableFrameRateGame {
 	private ProtocolClient protClient;
 	private boolean isClientConnected;
 	private Vector<UUID> gameObjectsToRemove;
+
+	//Sound
+	IAudioManager audioMgr;
+	Sound shipSound, hearSound;
 
 	private PhysicsEngine physicsEng;
 
@@ -458,15 +465,19 @@ public class MyGame extends VariableFrameRateGame {
 								//((Double)(jsEngine.get("spinSpeed"))).floatValue());
         //rc.addNode(avatarN);
         //sm.addController(rc);
+
+		//Physics
 		initPhysicsSystem();
 		setupNetworking();
-		//setupInputs();
+
+		setupInputs();
 		setUpTerrain();
 		
 		//ask for tree info if protocol isn't null
 		setupTrees();
 		createGroundPO(1, sm.getRootSceneNode().getWorldPosition());
 
+		initAudio(sm);
     }
 	
 	public void setupTrees(){
@@ -647,6 +658,14 @@ public class MyGame extends VariableFrameRateGame {
 		SkeletalEntity avatarE = (SkeletalEntity) sm.getEntity("avatar");
 		avatarE.update();
 
+		/***Sound***/
+		SceneManager sm = engine.getSceneManager();
+		//hearSound.setLocation(sm.getSceneNode("avatar").getWorldPosition());
+		if(sm.hasSceneNode("ghostNPCN")) {
+			shipSound.setLocation(sm.getSceneNode("ghostNPCN").getWorldPosition());
+		}
+		setEarParameters(sm);
+
 	}
 
 	protected void processNetworking(float elapsTime){
@@ -691,7 +710,7 @@ public class MyGame extends VariableFrameRateGame {
 				//System.out.println("Creating ghost npc");
 				Entity ghostNPCE = sm.createEntity("ghostNPC", "cube.obj");
 				ghostNPCE.setPrimitive(Primitive.TRIANGLES);
-				SceneNode ghostNPCN = sm.getRootSceneNode().createChildSceneNode("GhostNPCnode");
+				SceneNode ghostNPCN = sm.getRootSceneNode().createChildSceneNode("ghostNPCN");
 				ghostNPCN.attachObject(ghostNPCE);
 				ghostNPCN.setLocalPosition(0, 0, 0); //these hardcoded numbers need some enumeration later
 				npc.setNode(ghostNPCN);
@@ -722,7 +741,6 @@ public class MyGame extends VariableFrameRateGame {
 		float[] halfExtents = {0.5f, 0.25f, 0.25f};
 
 		try{
-			System.out.println("Creating tree npc");
 			Entity treeE = sm.createEntity("tree" + id, "lowPolyPineTreeblend.obj");
 			treeE.setPrimitive(Primitive.TRIANGLES);
 			SceneNode treeN = sm.getRootSceneNode().createChildSceneNode("treeNode" + id);
@@ -730,9 +748,9 @@ public class MyGame extends VariableFrameRateGame {
 			treeN.setLocalPosition(position); //these hardcoded numbers need some enumeration later
 			updateVerticalPosition(treeN);
 			treeN.scale(2.0f, 2.0f, 2.0f);
-			//treeN.setLocalPosition(treeN.getLocalPosition().add(0.0f,5.0f,0.0f));
 			
 			if(treeN.getLocalPosition().y() <= .5) {
+				treeN.setLocalPosition(treeN.getLocalPosition().add(0.0f,5.0f,0.0f));
 				double[] temptf = toDoubleArray(treeN.getLocalTransform().toFloatArray());
 				PhysicsObject treePO = physicsEng.addCylinderObject(physicsEng.nextUID(), mass, temptf, halfExtents);
 				treePO.setBounciness(0.0f);
@@ -829,6 +847,48 @@ public class MyGame extends VariableFrameRateGame {
 		}
 	
 		return ret;
+	}
+
+/**********************Sound***********************/
+	public void initAudio(SceneManager sm) {
+		AudioResource resource1, resource2;
+		audioMgr = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
+
+		if(!audioMgr.initialize()) {
+			System.out.print("Audio Manager failed to initialize!");
+			return;
+		}
+
+		resource1 = audioMgr.createAudioResource("ship-sound.wav", AudioResourceType.AUDIO_SAMPLE);
+		shipSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
+
+		shipSound.initialize(audioMgr);
+
+		if(resource1.getIsLoaded()) {
+			System.out.println(resource1.getFileName() + " Loaded!");
+		} else {
+			System.out.println("File not Loaded");
+		}
+
+		//shipSound.setMaxDistance(10.0f);
+		//shipSound.setMinDistance(0.5f);
+		//shipSound.setRollOff(5.0f);
+		if(sm.hasSceneNode("ghostNPCN")) {
+			SceneNode npcN = sm.getSceneNode("ghostNPCN");
+			shipSound.setLocation(npcN.getWorldPosition());
+			System.out.println("ghostNPC Sound Here---------------------");
+		}
+		
+		setEarParameters(sm);
+		shipSound.play();
+	}
+
+	public void setEarParameters(SceneManager sm) {
+		SceneNode avatarN = sm.getSceneNode("avatarN");
+		Vector3 avDir = avatarN.getWorldForwardAxis();
+
+		audioMgr.getEar().setLocation(avatarN.getWorldPosition());
+		audioMgr.getEar().setOrientation(avDir, Vector3f.createFrom(0,1,0));
 	}
 
 }
