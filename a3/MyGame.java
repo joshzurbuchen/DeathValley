@@ -5,8 +5,6 @@ import myGameEngine.Networking.GhostAvatar;
 import myGameEngine.Networking.NetworkingServer;
 import myGameEngine.Networking.GameServerUDP;
 import myGameEngine.Networking.AvatarNear;
-import myGameEngine.Networking.GetBig;
-import myGameEngine.Networking.GetSmall;
 import myGameEngine.Networking.NPC;
 import myGameEngine.Networking.NPCcontroller;
 import myGameEngine.Networking.OneSecPassed;
@@ -152,6 +150,9 @@ public class MyGame extends VariableFrameRateGame {
 	private DisplaySettingsDialog dSettings;
 
 	private RotationController rc;
+	
+	private Light playerlight;
+	private boolean lightOn = false;
 
     public MyGame(String serverAddr, int sPort) {
         super();
@@ -284,6 +285,7 @@ public class MyGame extends VariableFrameRateGame {
 		Action yawLeft = new YawLeftAction(avatarN, protClient, jsEngine);
 		Action yawRight = new YawRightAction(avatarN, protClient, jsEngine);
 		Action quit = new SendCloseConnectionPacketAction();//protClient, isClientConnected);
+		Action light = new PlayerLightAction(this);
 		
 		Action xAxis = new XAxisAction(avatarN, protClient, jsEngine, this);
 		Action yAxis = new YAxisAction(avatarN, protClient, jsEngine, this);
@@ -302,6 +304,7 @@ public class MyGame extends VariableFrameRateGame {
 				im.associateAction(c, net.java.games.input.Component.Identifier.Key.DOWN,	pitchDown, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 				im.associateAction(c, net.java.games.input.Component.Identifier.Key.LEFT,	yawLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 				im.associateAction(c, net.java.games.input.Component.Identifier.Key.RIGHT, yawRight, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Key.L, light, InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 			} else if(c.getType() == Controller.Type.GAMEPAD) {
 				//Gamepad associations
 				im.associateAction(c, net.java.games.input.Component.Identifier.Axis.X, xAxis, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -309,6 +312,8 @@ public class MyGame extends VariableFrameRateGame {
         		im.associateAction(c, net.java.games.input.Component.Identifier.Axis.RX, rXAxis, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
         		im.associateAction(c, net.java.games.input.Component.Identifier.Axis.RY, rYAxis, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 				im.associateAction(c, net.java.games.input.Component.Identifier.Button._7, quit, InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+				im.associateAction(c, net.java.games.input.Component.Identifier.Button._1, light, InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+
 				//im.associateAction(c, net.java.games.input.Component.Identifier.Button._4, yawLeftAction2, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 				//im.associateAction(c, net.java.games.input.Component.Identifier.Button._5, yawRightAction2, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 			}
@@ -366,6 +371,16 @@ public class MyGame extends VariableFrameRateGame {
 		avatarN.scale(0.5f, 0.5f, 0.5f);
 		avatarN.moveBackward(2.0f);
 		avatarN.attachObject(avatarE);
+		
+		//attach a light to the avatar
+		SceneNode avatarLightN = avatarN.createChildSceneNode(avatarN.getName() + "lightNode");
+		playerlight = sm.createLight("avatarLamp", Light.Type.POINT);
+		avatarLight();
+		//avatarLightN.moveForward(1.0f);
+		avatarLightN.moveUp(1.0f);
+        playerlight.setRange(5f);
+
+        avatarLightN.attachObject(playerlight);
 
 		//attach camera to avatar
 		avatarChildN = avatarN.createChildSceneNode(avatarE.getName() + "Node");
@@ -375,6 +390,25 @@ public class MyGame extends VariableFrameRateGame {
 
 		//load animations
 		avatarE.loadAnimation("walkAnimation","MrPolygonWalk.rka");
+	}
+	
+	public void avatarLight(){
+		
+		if(lightOn){
+			playerlight.setAmbient(new Color(0.0f, 0.0f, 0.0f));
+			playerlight.setDiffuse(new Color(0.0f, 0.0f, 1.0f));
+			playerlight.setSpecular(new Color(0.0f, 0.0f, 1.0f));
+		}
+		else{
+			playerlight.setAmbient(new Color(0.0f, 0.0f, 0.0f));
+			playerlight.setDiffuse(new Color(0.0f, 0.0f, 0.0f));
+			playerlight.setSpecular(new Color(0.0f, 0.0f, 0.0f));	
+		}
+      
+	}
+	
+	public void lightSwitch(){
+		lightOn = !lightOn;
 	}
 
 	public void doTheWalk(){
@@ -664,7 +698,16 @@ public class MyGame extends VariableFrameRateGame {
 			//Vector3 temp = shipSound.getLocation();
 			//System.out.print("Sound Pos: " + temp.x() + ", " + temp.y() + ", " +  temp.z());
 		}
+		
+		if(sm.hasSceneNode("ghostNPCN")) {
+			SceneNode npcN = sm.getSceneNode("ghostNPCN");
+			shipSound.setLocation(npcN.getWorldPosition());
+			//System.out.println("ghostNPC Sound Here---------------------");
+		}
+		
 		setEarParameters(sm);
+		
+		avatarLight();
 
 	}
 
@@ -859,7 +902,7 @@ public class MyGame extends VariableFrameRateGame {
 			return;
 		}
 
-		resource1 = audioMgr.createAudioResource("ship-sound.wav", AudioResourceType.AUDIO_SAMPLE);
+		resource1 = audioMgr.createAudioResource("ship-sound-MONO.wav", AudioResourceType.AUDIO_SAMPLE);
 		shipSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
 
 		shipSound.initialize(audioMgr);
@@ -893,7 +936,7 @@ public class MyGame extends VariableFrameRateGame {
 	}
 
 	public void setEarParameters(SceneManager sm) {
-		SceneNode avatarN = sm.getSceneNode("avatarN");
+		//SceneNode avatarN = sm.getSceneNode("avatarN");
 		Vector3 avDir = avatarN.getWorldForwardAxis();
 
 		audioMgr.getEar().setLocation(avatarN.getWorldPosition());

@@ -31,9 +31,9 @@ public class Spell{
 		childN2 = parent.createChildSceneNode("child2");
 		childN3 = parent.createChildSceneNode("child3");
 		
-		Entity entity1E = sm.createEntity("entity1E", "sphere.obj");
-		Entity entity2E = sm.createEntity("entity2E", "sphere.obj");
-		Entity entity3E = sm.createEntity("entity3E", "sphere.obj");
+		Entity entity1E = sm.createEntity("entity1E", "sword.obj");
+		Entity entity2E = sm.createEntity("entity2E", "sword.obj");
+		Entity entity3E = sm.createEntity("entity3E", "sword.obj");
 		
 		//entitys to nodes
 		childN1.attachObject(entity1E);
