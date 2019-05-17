@@ -102,8 +102,8 @@ public class MyGame extends VariableFrameRateGame {
 	// to minimize variable allocation in update()
 	GL4RenderSystem rs;
 	float elapsTime = 0.0f;
-	String elapsTimeStr, counterStr, dispStr;
-	int elapsTimeSec, counter = 0;
+	String elapsTimeStr, dispStr;
+	int elapsTimeSec;
 
 	private SceneManager sm;
 	//private SceneNode avatarN;
@@ -630,8 +630,7 @@ public class MyGame extends VariableFrameRateGame {
 		elapsTime += engine.getElapsedTimeMillis();
 		elapsTimeSec = Math.round(elapsTime/1000.0f);
 		elapsTimeStr = Integer.toString(elapsTimeSec);
-		counterStr = Integer.toString(counter);
-		dispStr = "Time = " + elapsTimeStr + "   Keyboard hits = " + counterStr;
+		dispStr = "Time = " + elapsTimeStr;
 		rs.setHUD(dispStr, 15, 15);
 
 		//run script again in update() to demonstrate dynamic modification
@@ -795,7 +794,7 @@ public class MyGame extends VariableFrameRateGame {
 	public void addGhostSpell(int ghostSpellID, Vector3 ghostPosition)throws IOException{
 		
 		float mass = 100.0f;
-		float[] halfExtents = {0.5f, 0.5f, 0.5f};
+		float[] halfExtents = {0.5f, 0.3f, 0.3f};
 		
 		Spell spell = new Spell(sm, ghostSpellID, ghostPosition);
 		spell.buildObj();
