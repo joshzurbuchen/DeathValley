@@ -7,8 +7,8 @@ public class NPC{
 	
 	private boolean goingUp = true;
 	private double yRate = 0.05;
-	private double xRate = 0.1;
-	private double zRate = 0.1;
+	private double xRate = 0.315;
+	private double zRate = 0.315;
 	private Vector3 target;
 	
 	public NPC(){
