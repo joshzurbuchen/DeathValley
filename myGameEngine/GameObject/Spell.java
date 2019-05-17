@@ -10,6 +10,7 @@ import ray.rml.*;
 public class Spell{
 	
 	private SceneManager sm;
+	private SceneNode spellController;
 	private SceneNode parent;
 	private SceneNode childN1;
 	private SceneNode childN2;
@@ -20,9 +21,10 @@ public class Spell{
 	private int ID;
 	private Vector3 position;
 	
-	public Spell(SceneManager sm, int ghostSpellID, Vector3 ghostPosition){
+	public Spell(SceneManager sm, SceneNode spells, int ghostSpellID, Vector3 ghostPosition){
 		
 		this.sm = sm;
+		spellController = spells;
 		ID = ghostSpellID;
 		position = ghostPosition;
 	}
@@ -30,7 +32,7 @@ public class Spell{
 	public void buildObj() throws IOException{
 	
 		//make the nodes for our object
-		parent = sm.getRootSceneNode().createChildSceneNode("parent" + ID);
+		parent = spellController.createChildSceneNode("sParent" + ID);
 		parent.setLocalPosition(position);
 		
 		childN1 = parent.createChildSceneNode("child1" + ID);

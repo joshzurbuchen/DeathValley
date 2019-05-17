@@ -39,6 +39,7 @@ import java.awt.event.*;
 import java.awt.GraphicsDevice;
 import java.io.*;
 import java.util.*;
+import java.util.Random;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
@@ -102,8 +103,9 @@ public class MyGame extends VariableFrameRateGame {
 	// to minimize variable allocation in update()
 	GL4RenderSystem rs;
 	float elapsTime = 0.0f;
-	String elapsTimeStr, dispStr;
+	String elapsTimeStr, dispStr, deathStr;
 	int elapsTimeSec;
+	int deathCtr = 0;
 
 	private SceneManager sm;
 	//private SceneNode avatarN;
@@ -113,6 +115,7 @@ public class MyGame extends VariableFrameRateGame {
 	private SceneNode cameraN;
 	private SceneNode tessN;
 	private SceneNode treeN;
+	private SceneNode spellController;
 	
 	private int gitTest;
 
@@ -128,6 +131,9 @@ public class MyGame extends VariableFrameRateGame {
 	private ProtocolClient protClient;
 	private boolean isClientConnected;
 	private Vector<UUID> gameObjectsToRemove;
+
+	private Random rand = new Random();
+
 
 	//Sound
 	IAudioManager audioMgr;
@@ -442,6 +448,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	//******Lighting
         sm.getAmbientLight().setIntensity(new Color(.5f, .5f, .5f));
+		spellController = sm.getRootSceneNode().createChildSceneNode("spellController");
 
 		Light plight = sm.createLight("testLamp10", Light.Type.POINT);
 		plight.setAmbient(new Color(.3f, .3f, .3f));
@@ -630,7 +637,8 @@ public class MyGame extends VariableFrameRateGame {
 		elapsTime += engine.getElapsedTimeMillis();
 		elapsTimeSec = Math.round(elapsTime/1000.0f);
 		elapsTimeStr = Integer.toString(elapsTimeSec);
-		dispStr = "Time = " + elapsTimeStr;
+		deathStr = Integer.toString(deathCtr);
+		dispStr = "Time = " + elapsTimeStr + " Deaths = " + deathStr;
 		rs.setHUD(dispStr, 15, 15);
 
 		//run script again in update() to demonstrate dynamic modification
@@ -696,6 +704,7 @@ public class MyGame extends VariableFrameRateGame {
 		setEarParameters(sm);
 		avatarLight();
 
+		checkSpellCollision();
 	}
 
 	protected void processNetworking(float elapsTime){
@@ -768,7 +777,7 @@ public class MyGame extends VariableFrameRateGame {
 	
 	public void addGhostTreetoGameWorld(int id, Vector3 position){
 		float mass = 100.0f;
-		float[] halfExtents = {0.5f, 0.25f, 0.25f};
+		float[] halfExtents = {1.0f, 0.3f, 0.3f};
 
 		try{
 			Entity treeE = sm.createEntity("tree" + id, "lowPolyPineTreeblend.obj");
@@ -790,20 +799,35 @@ public class MyGame extends VariableFrameRateGame {
 			//avatar.setPosition(); sample says this could be redundent. Leaving it commented out for now
 		}catch(IOException e){}
 	}
-	
-	public void addGhostSpell(int ghostSpellID, Vector3 ghostPosition)throws IOException{
+
+
+	/*****************************Sword Spell and basic collision*****************************/
+	public void addGhostSpell(int ghostSpellID, Vector3 ghostPosition) throws IOException{
 		
-		float mass = 100.0f;
-		float[] halfExtents = {0.5f, 0.3f, 0.3f};
+		float mass = 10.0f;
+		float[] halfExtents = {1.0f, 0.3f, 0.3f};
 		
-		Spell spell = new Spell(sm, ghostSpellID, ghostPosition);
+		Spell spell = new Spell(sm, spellController, ghostSpellID, ghostPosition);
 		spell.buildObj();
 		
 		double[] temptf = toDoubleArray(spell.getParentNode().getLocalTransform().toFloatArray());
 		PhysicsObject spellPO = physicsEng.addCylinderObject(physicsEng.nextUID(), mass, temptf, halfExtents);
 		spellPO.setBounciness(0.0f);
 		spell.getParentNode().setPhysicsObject(spellPO);
-		
+
+		//herehere
+	}
+
+	public void checkSpellCollision() {
+		Iterable<Node> i = spellController.getChildNodes();
+
+		for(Node n: i) {
+			float dist = distTo(avatarN.getWorldPosition(), n.getWorldPosition());
+			if(dist < 2.0f) {
+				deathCtr++;
+				avatarN.setLocalPosition(rand.nextFloat() * 10.0f, 0.0f, rand.nextFloat() * 10.0f);
+			}
+		}
 	}
 
 	public void createGroundPO(int id, Vector3 position) {
@@ -829,7 +853,6 @@ public class MyGame extends VariableFrameRateGame {
 			gameObjectsToRemove.add(avatar.getID());
 	}
 
-
 	private class SendCloseConnectionPacketAction extends AbstractInputAction{
 
 		public void performAction(float time, Event e){
@@ -840,6 +863,10 @@ public class MyGame extends VariableFrameRateGame {
 			exit();
 		}
 	}
+
+    public static float distTo(Vector3 p1, Vector3 p2) {
+        return (float) Math.sqrt(Math.pow(p1.x() - p2.x(), 2) + Math.pow(p1.y() - p2.y(), 2) + Math.pow(p1.z() - p2.z(), 2));
+    }
 
 /*****************HERE BE PHYSICS*****************/
 	private void initPhysicsSystem() {
