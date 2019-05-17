@@ -141,12 +141,8 @@ public class ProtocolClient extends GameConnectionClient{
 					Float.parseFloat(messageTokens[3]),
 					Float.parseFloat(messageTokens[4]));
 					
-					//try{
-						createGhostSpell(ghostSpellID, ghostPosition);
-					//}
-					//catch(IOException e){
-						//e.printStackTrace();
-					//}
+
+				createGhostSpell(ghostSpellID, ghostPosition);
 			}
 		} 
 	}

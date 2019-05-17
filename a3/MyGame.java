@@ -438,20 +438,7 @@ public class MyGame extends VariableFrameRateGame {
 		//spell.buildObj();
 
 		//******add tree
-/*
-		Entity treeE = sm.createEntity("myTree", "lowPolyPineTreeblend.obj");
-		//Entity treeE = sm.createEntity("myTree", "cube.obj");
-		treeE.setPrimitive(Primitive.TRIANGLES);
 
-		treeN = sm.getRootSceneNode().createChildSceneNode("treeNode");
-		treeN.scale(.5f, .5f, .5f);
-		treeN.attachObject(treeE);
-
-		Texture treeTex = tm.getAssetByPath("low_poly_pine_tree_skin.png");
-		TextureState treeTexState = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
-		treeTexState.setTexture(treeTex);
-		treeE.setRenderState(treeTexState);
-*/
 
 	//******Lighting
         sm.getAmbientLight().setIntensity(new Color(.5f, .5f, .5f));
@@ -708,7 +695,6 @@ public class MyGame extends VariableFrameRateGame {
 		}
 		
 		setEarParameters(sm);
-		
 		avatarLight();
 
 	}
@@ -790,7 +776,7 @@ public class MyGame extends VariableFrameRateGame {
 			treeE.setPrimitive(Primitive.TRIANGLES);
 			SceneNode treeN = sm.getRootSceneNode().createChildSceneNode("treeNode" + id);
 			treeN.attachObject(treeE);
-			treeN.setLocalPosition(position); //these hardcoded numbers need some enumeration later
+			treeN.setLocalPosition(position);
 			updateVerticalPosition(treeN);
 			treeN.scale(2.0f, 2.0f, 2.0f);
 			
@@ -809,7 +795,7 @@ public class MyGame extends VariableFrameRateGame {
 	public void addGhostSpell(int ghostSpellID, Vector3 ghostPosition)throws IOException{
 		
 		float mass = 100.0f;
-		float[] halfExtents = {0.5f, 0.25f, 0.25f};
+		float[] halfExtents = {0.5f, 0.5f, 0.5f};
 		
 		Spell spell = new Spell(sm, ghostSpellID, ghostPosition);
 		spell.buildObj();
@@ -844,27 +830,6 @@ public class MyGame extends VariableFrameRateGame {
 			gameObjectsToRemove.add(avatar.getID());
 	}
 
-/*
-    @Override
-    public void keyPressed(KeyEvent e) {
-        Entity dolphin = getEngine().getSceneManager().getEntity("myDolphin");
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_L:
-                dolphin.setPrimitive(Primitive.LINES);
-                break;
-            case KeyEvent.VK_T:
-                dolphin.setPrimitive(Primitive.TRIANGLES);
-                break;
-            case KeyEvent.VK_P:
-                dolphin.setPrimitive(Primitive.POINTS);
-                break;
-			case KeyEvent.VK_C:
-				counter++;
-				break;
-        }
-        super.keyPressed(e);
-    }
-*/
 
 	private class SendCloseConnectionPacketAction extends AbstractInputAction{
 
