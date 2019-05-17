@@ -266,6 +266,21 @@ public class GameServerUDP extends GameConnectionServer<UUID>{
 		
 	}
 	
+	public void sendDrop(int ID, double X, double Y, double Z){
+		
+		try{
+			String message = new String("drop," + Integer.toString(ID));
+			message += "," + Double.toString(X);
+			message += "," + Double.toString(Y);
+			message += "," + Double.toString(Z);
+			sendPacketToAll(message);
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
+		
+	}
+	
 	public void sendCheckForAvatarNear(){
 		
 	}	

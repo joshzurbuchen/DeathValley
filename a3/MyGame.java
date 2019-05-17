@@ -9,6 +9,8 @@ import myGameEngine.Networking.NPC;
 import myGameEngine.Networking.NPCcontroller;
 import myGameEngine.Networking.OneSecPassed;
 import myGameEngine.Networking.NpcMove;
+import myGameEngine.Networking.ThreeSecPassed;
+import myGameEngine.Networking.NpcDrop;
 import myGameEngine.GameObject.Spell;
 
 import a3.DisplaySettingsDialog;
@@ -432,8 +434,8 @@ public class MyGame extends VariableFrameRateGame {
 		setupAvatar(eng, sm);
 
 		//******spell testing
-		Spell spell = new Spell(sm);
-		spell.buildObj();
+		//Spell spell = new Spell(sm);
+		//spell.buildObj();
 
 		//******add tree
 /*
@@ -802,6 +804,21 @@ public class MyGame extends VariableFrameRateGame {
 			//createGroundPO(id, position);
 			//avatar.setPosition(); sample says this could be redundent. Leaving it commented out for now
 		}catch(IOException e){}
+	}
+	
+	public void addGhostSpell(int ghostSpellID, Vector3 ghostPosition)throws IOException{
+		
+		float mass = 100.0f;
+		float[] halfExtents = {0.5f, 0.25f, 0.25f};
+		
+		Spell spell = new Spell(sm, ghostSpellID, ghostPosition);
+		spell.buildObj();
+		
+		double[] temptf = toDoubleArray(spell.getParentNode().getLocalTransform().toFloatArray());
+		PhysicsObject spellPO = physicsEng.addCylinderObject(physicsEng.nextUID(), mass, temptf, halfExtents);
+		spellPO.setBounciness(0.0f);
+		spell.getParentNode().setPhysicsObject(spellPO);
+		
 	}
 
 	public void createGroundPO(int id, Vector3 position) {

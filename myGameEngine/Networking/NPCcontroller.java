@@ -4,6 +4,7 @@ import myGameEngine.Networking.*;
 
 import java.util.Random;
 import java.util.UUID;
+import java.util.Vector;
 import java.lang.NullPointerException;
 
 
@@ -17,15 +18,17 @@ public class NPCcontroller{
 	
 	private int numNPCs = 1;
 	private int numTrees = 150;
+	private int spellID = 0;
 	private NPC[] NPClist = new NPC[numNPCs];
 	private NPC[] treelist = new NPC[numTrees];
+	private Vector<NPCspell> spelllist = new Vector<NPCspell>();
 	private BehaviorTree bt = new BehaviorTree(BTCompositeType.SELECTOR);
 	private long thinkStartTime;
 	private long tickStartTime;
 	private long lastThinkUpdateTime;
 	private long lastTickUpdateTime;
 	private Random rn = new Random();
-	private boolean nearFlag;
+	private boolean dropFlag;
 	
 	private GameServerUDP server;
 	private int numPlayers = 2;
@@ -95,12 +98,6 @@ public class NPCcontroller{
 		System.out.println("numTrees = " + numTrees);
 	}
 	
-	
-	
-	public boolean getNearFlag(){
-		return true;
-	}
-	
 	public void npcLoop(NPC npc){
 		while(true){
 			//System.out.println("NPCcontroller npcLoop true");
@@ -133,16 +130,33 @@ public class NPCcontroller{
 	
 	public void setupBehaviorTree(NPC npc){
 		bt.insertAtRoot(new BTSequence(10));
-		//bt.insertAtRoot(new BTSequence(20));
-		bt.insert(10, new NpcMove(npc, server, this));
-		//bt.insert(10, new OneSecPassed(this,npc,false));
-		//bt.insert(10, new GetSmall(npc));
-		//bt.insert(20, new AvatarNear(server,this,npc,false));
-		//bt.insert(20, new GetBig(npc));
+		bt.insertAtRoot(new BTSequence(20));
+		bt.insert(10, new ThreeSecPassed(this,npc,false));
+		bt.insert(10, new NpcDrop(npc,this));
+		bt.insert(20, new NpcMove(npc, server, this));
 	}
 	
-	public void setNearFlag(boolean flag){
-		nearFlag = flag;
+	public void setdropFlag(boolean flag){
+		dropFlag = flag;
+	}
+	
+	public boolean getdropFlag(){
+		return dropFlag;
+	}
+	
+	public void drop(double X, double Y, double Z){
+		//make new spell
+		NPCspell newSpell = new NPCspell(spellID);
+		newSpell.setLocation(X, Y, Z);
+		
+		//add newSpell to spelllist
+		spelllist.add(newSpell);
+		
+		//tell server to send connected clients to populate a spell object
+		server.sendDrop(spellID, X, Y, Z);
+		
+		//increment spellID for the next spell created
+		spellID++;
 	}
 	
 	public void setpid(String id, int i) {

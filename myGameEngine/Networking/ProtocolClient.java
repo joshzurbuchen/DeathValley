@@ -133,6 +133,21 @@ public class ProtocolClient extends GameConnectionClient{
 					e.printStackTrace();
 				}
 			}
+			
+			if(messageTokens[0].compareTo("drop")==0){
+				int ghostSpellID = Integer.parseInt(messageTokens[1]);
+				Vector3 ghostPosition = Vector3f.createFrom(
+					Float.parseFloat(messageTokens[2]),
+					Float.parseFloat(messageTokens[3]),
+					Float.parseFloat(messageTokens[4]));
+					
+					//try{
+						createGhostSpell(ghostSpellID, ghostPosition);
+					//}
+					//catch(IOException e){
+						//e.printStackTrace();
+					//}
+			}
 		} 
 	}
 	
@@ -337,5 +352,15 @@ public class ProtocolClient extends GameConnectionClient{
 		
 		}
 		*/
+	}
+	
+	public void createGhostSpell(int ghostSpellID, Vector3 ghostPosition){
+	
+		try{
+			game.addGhostSpell(ghostSpellID, ghostPosition);
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 }

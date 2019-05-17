@@ -17,23 +17,29 @@ public class Spell{
 	
 	private float dfp = 1.5f; //dfp = distant from parent
 	
+	private int ID;
+	private Vector3 position;
 	
-	public Spell(SceneManager sm){
+	public Spell(SceneManager sm, int ghostSpellID, Vector3 ghostPosition){
 		
 		this.sm = sm;
+		ID = ghostSpellID;
+		position = ghostPosition;
 	}
 	
 	public void buildObj() throws IOException{
 	
 		//make the nodes for our object
-		parent = sm.getRootSceneNode().createChildSceneNode("parent");
-		childN1 = parent.createChildSceneNode("child1");
-		childN2 = parent.createChildSceneNode("child2");
-		childN3 = parent.createChildSceneNode("child3");
+		parent = sm.getRootSceneNode().createChildSceneNode("parent" + ID);
+		parent.setLocalPosition(position);
 		
-		Entity entity1E = sm.createEntity("entity1E", "sword.obj");
-		Entity entity2E = sm.createEntity("entity2E", "sword.obj");
-		Entity entity3E = sm.createEntity("entity3E", "sword.obj");
+		childN1 = parent.createChildSceneNode("child1" + ID);
+		childN2 = parent.createChildSceneNode("child2" + ID);
+		childN3 = parent.createChildSceneNode("child3" + ID);
+		
+		Entity entity1E = sm.createEntity("entity1E" + ID, "sword.obj");
+		Entity entity2E = sm.createEntity("entity2E" + ID, "sword.obj");
+		Entity entity3E = sm.createEntity("entity3E" + ID, "sword.obj");
 		
 		//entitys to nodes
 		childN1.attachObject(entity1E);
@@ -65,5 +71,9 @@ public class Spell{
 	public void setLocation(Vector3 loc){
 			
 		parent.setLocalPosition(loc);
+	}
+	
+	public SceneNode getParentNode(){
+		return parent;
 	}
 }
